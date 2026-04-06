@@ -1,0 +1,86 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Run tests
+        run: make test
+
+      - name: Build release binaries
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: make release VERSION="${VERSION}"
+
+      - name: Package artifacts
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          workspace_dir="$(pwd)"
+          mkdir -p dist
+
+          for target_dir in bin/*; do
+            [ -d "${target_dir}" ] || continue
+
+            target="$(basename "${target_dir}")"
+            os="${target%-*}"
+            arch="${target#*-}"
+
+            binary_name="discoverd"
+            if [ "${os}" = "windows" ]; then
+              binary_name="${binary_name}.exe"
+            fi
+
+            binary_path="${target_dir}/${binary_name}"
+            if [ ! -f "${binary_path}" ]; then
+              echo "expected binary not found: ${binary_path}" >&2
+              exit 1
+            fi
+
+            artifact_base="discoverd_${VERSION}_${os}_${arch}"
+            if [ "${os}" = "windows" ]; then
+              (
+                cd "${target_dir}"
+                zip -q "${workspace_dir}/dist/${artifact_base}.zip" "${binary_name}"
+              )
+            else
+              tar -C "${target_dir}" -czf "dist/${artifact_base}.tar.gz" "${binary_name}"
+            fi
+          done
+
+          (
+            cd dist
+            shasum -a 256 * > checksums.txt
+          )
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          fail_on_unmatched_files: true
+          files: |
+            dist/*.tar.gz
+            dist/*.zip
+            dist/checksums.txt
