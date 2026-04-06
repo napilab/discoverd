@@ -104,3 +104,5 @@ $RECYCLE.BIN/
 # other
 .agents
 skills-lock.json
+bin
+.github/instructions
