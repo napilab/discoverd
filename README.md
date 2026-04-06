@@ -57,3 +57,37 @@ Run client (in another terminal):
 ```
 
 You can also set the secret with environment variable `DISCOVERD_SECRET`.
+
+## Linux: systemd Service
+
+This repository includes a production-oriented unit file at `./deploy/systemd/discoverd.service`.
+
+Build and install binary:
+
+```sh
+make build
+sudo install -m 0755 ./bin/discoverd /usr/local/bin/discoverd
+```
+
+Create a dedicated system user:
+
+```sh
+sudo useradd --system --no-create-home --shell /usr/sbin/nologin discoverd
+```
+
+Install service and environment file:
+
+```sh
+sudo install -m 0644 ./deploy/systemd/discoverd.service /etc/systemd/system/discoverd.service
+sudo install -D -m 0600 ./deploy/systemd/discoverd.env.example /etc/default/discoverd
+```
+
+Edit `/etc/default/discoverd` and set a strong `DISCOVERD_SECRET` value.
+
+Enable and start service:
+
+```sh
+sudo systemctl daemon-reload
+sudo systemctl enable --now discoverd
+sudo systemctl status discoverd --no-pager
+```
