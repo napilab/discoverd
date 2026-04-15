@@ -1,6 +1,6 @@
 module github.com/napilab/discoverd
 
-go 1.26.1
+go 1.22
 
 require (
 	github.com/google/uuid v1.6.0
