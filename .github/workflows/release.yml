@@ -26,6 +26,9 @@ jobs:
       - name: Run tests
         run: make test
 
+      - name: Install nfpm
+        run: go install github.com/goreleaser/nfpm/v2/cmd/nfpm@latest
+
       - name: Build release binaries
         env:
           VERSION: ${{ github.ref_name }}
@@ -83,4 +86,5 @@ jobs:
           files: |
             dist/*.tar.gz
             dist/*.zip
+            dist/*.deb
             dist/checksums.txt

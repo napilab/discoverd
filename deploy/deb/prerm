@@ -1,0 +1,17 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+    remove|upgrade|deconfigure)
+        if command -v systemctl >/dev/null 2>&1; then
+            if systemctl is-active --quiet discoverd 2>/dev/null; then
+                systemctl stop discoverd
+            fi
+            if systemctl is-enabled --quiet discoverd 2>/dev/null; then
+                systemctl disable discoverd
+            fi
+        fi
+        ;;
+esac
+
+exit 0

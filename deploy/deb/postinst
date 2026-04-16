@@ -1,0 +1,40 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+    configure)
+        # Create system user if it does not already exist
+        if ! id -u discoverd >/dev/null 2>&1; then
+            adduser \
+                --system \
+                --no-create-home \
+                --group \
+                --shell /usr/sbin/nologin \
+                discoverd
+        fi
+
+        # Restrict example env file to the discoverd group
+        if [ -f /etc/discoverd ]; then
+            chown root:discoverd /etc/discoverd
+            chmod 640 /etc/discoverd
+        fi
+
+        # Reload, enable, and start the service if systemd is running
+        if command -v systemctl >/dev/null 2>&1 && \
+            systemctl is-system-running >/dev/null 2>&1; then
+            systemctl daemon-reload
+            systemctl enable discoverd
+            systemctl start discoverd
+        fi
+
+        if [ -z "$2" ]; then
+            echo ""
+            echo "discoverd has been installed and started."
+            echo ""
+            echo "Note: set DISCOVERD_SECRET in /etc/discoverd and restart the service:"
+            echo "  systemctl restart discoverd"
+        fi
+        ;;
+esac
+
+exit 0

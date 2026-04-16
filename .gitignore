@@ -106,3 +106,5 @@ $RECYCLE.BIN/
 skills-lock.json
 bin
 .github/instructions
+.deb-staging/
+dist/

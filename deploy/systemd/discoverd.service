@@ -11,7 +11,7 @@ Group=discoverd
 Environment=DISCOVERD_MCAST=239.255.255.250
 Environment=DISCOVERD_PORT=9999
 Environment=DISCOVERD_MAX_CLOCK_SKEW=10s
-EnvironmentFile=/etc/default/discoverd
+EnvironmentFile=/etc/discoverd
 ExecStartPre=/usr/bin/test -n "${DISCOVERD_SECRET}"
 ExecStart=discoverd --mode server --mcast ${DISCOVERD_MCAST} --port ${DISCOVERD_PORT} --max-clock-skew ${DISCOVERD_MAX_CLOCK_SKEW}
 Restart=on-failure

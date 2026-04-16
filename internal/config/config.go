@@ -25,7 +25,7 @@ const (
 	defaultTTL            = 2
 	defaultRetries        = 1
 	defaultOutput         = "text"
-	defaultSecret         = "supersecretkey"
+	defaultSecret         = "napilab"
 )
 
 // Config stores runtime settings for discovery client and server modes.

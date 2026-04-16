@@ -6,6 +6,7 @@ MODE ?= client
 BINARY_NAME ?= discoverd
 CMD_PATH ?= ./cmd/discoverd
 BIN_DIR ?= ./bin
+DIST_DIR ?= ./dist
 BINARY ?= $(BIN_DIR)/$(BINARY_NAME)
 PKGS ?= ./...
 VERSION ?= dev
@@ -15,7 +16,7 @@ LDFLAGS ?= -X github.com/napilab/discoverd/version.Version=$(VERSION) -X github.
 LDFLAGS_RELEASE := -s -w
 EXT ?=
 
-.PHONY: help build version release xgo run run-client run-server test test-race vet lint fmt tidy check ci clean
+.PHONY: help build version release xgo deb release-deb run run-client run-server test test-race vet lint fmt tidy check ci clean
 
 help: ## Show available targets
 	@awk 'BEGIN {FS = ":.*##"; printf "\nAvailable targets:\n"} /^[a-zA-Z0-9_.-]+:.*##/ {printf "  %-14s %s\n", $$1, $$2} END {printf "\n"}' $(MAKEFILE_LIST)
@@ -33,6 +34,20 @@ release: clean ## Cross-compile release binaries for major platforms
 	@$(MAKE) xgo GOOS=darwin GOARCH=arm64
 	@$(MAKE) xgo GOOS=darwin GOARCH=amd64
 	@echo "Cross-compilation completed!"
+	@$(MAKE) release-deb
+
+
+deb: ## Build .deb package for linux (requires nfpm; set GOARCH and VERSION)
+	@test -n "$(GOARCH)" || { echo "GOARCH is required"; exit 1; }
+	@command -v nfpm >/dev/null 2>&1 || { echo "nfpm is required. Install: go install github.com/goreleaser/nfpm/v2/cmd/nfpm@latest"; exit 1; }
+	@mkdir -p $(DIST_DIR) .deb-staging
+	@cp bin/linux-$(GOARCH)/discoverd .deb-staging/discoverd
+	GOARCH=$(GOARCH) VERSION=$(VERSION) nfpm pkg --packager deb --target $(DIST_DIR)/discoverd_$(VERSION)_linux_$(GOARCH).deb
+	@rm -rf .deb-staging
+
+release-deb: ## Build .deb packages for linux/amd64 and linux/arm64
+	@$(MAKE) deb GOARCH=amd64
+	@$(MAKE) deb GOARCH=arm64
 
 xgo: ## Build single target binary (requires GOOS and GOARCH)
 	@test -n "$(GOOS)" || { echo "GOOS is required"; exit 1; }
@@ -81,4 +96,4 @@ check: fmt test vet ## Run fast local checks
 ci: tidy fmt test-race vet lint ## Run full validation pipeline
 
 clean: ## Remove build artifacts
-	rm -rf $(BIN_DIR)
+	rm -rf $(BIN_DIR) $(DIST_DIR) .deb-staging

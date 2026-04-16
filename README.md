@@ -79,10 +79,10 @@ Install service and environment file:
 
 ```sh
 sudo install -m 0644 ./deploy/systemd/discoverd.service /etc/systemd/system/discoverd.service
-sudo install -D -m 0600 ./deploy/systemd/discoverd.env.example /etc/default/discoverd
+sudo install -D -m 0600 ./deploy/systemd/discoverd.env.example /etc/discoverd
 ```
 
-Edit `/etc/default/discoverd` and set a strong `DISCOVERD_SECRET` value.
+Edit `/etc/discoverd` and set a strong `DISCOVERD_SECRET` value.
 
 Enable and start service:
 
